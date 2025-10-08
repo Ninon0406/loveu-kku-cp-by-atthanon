@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PORT-FOLIO | นาย อรรถนนท์ เกษร</title>
+    <!-- โหลด Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- ตั้งค่า Font Inter และ Custom CSS สำหรับธีมสว่าง Modern Tech -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Prompt:wght@400;700&display=swap');
+        
+        /* การเลื่อนที่ราบรื่น (Smooth Scrolling) */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* ใช้พื้นหลังขาวสะอาด และ Font Promp สำหรับภาษาไทย */
+        body {
+            font-family: 'Prompt', 'Inter', sans-serif;
+            background-color: #f8f9fa; /* พื้นหลังสีขาวนวล/เทาอ่อน */
+            color: #212529; /* ข้อความสีเข้มเพื่อความคมชัด */
+        }
+        
+        /* สีเน้นหลัก (สีฟ้าเทคฯ เข้ม) */
+        .ai-primary {
+            color: #007bff; /* สีน้ำเงินสดใส */
+        }
+        
+        /* สีเน้นรอง (สีฟ้าอ่อนละมุน) */
+        .ai-secondary-bg {
+            background-color: #e9f5ff; 
+        }
+
+        /* สไตล์การ์ด - ขาวสะอาดพร้อมเงาอ่อน */
+        .ai-card-bg {
+            background-color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* เงาอ่อนแบบมืออาชีพ */
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border: 1px solid #f0f0f0; /* ขอบสีอ่อนมาก */
+        }
+        .ai-card-bg:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            transform: translateY(-4px); 
+        }
+
+        /* พื้นหลังส่วนหัว (ไล่เฉดสีอ่อน) */
+        .header-bg {
+            background: linear-gradient(180deg, #ffffff 0%, #e9f5ff 100%);
+        }
+
+        /* วงแหวนกะพริบของรูปโปรไฟล์ (อ่อนโยน) */
+        @keyframes pulse-ring {
+            0% {
+                box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.4);
+            }
+            100% {
+                box-shadow: 0 0 0 10px rgba(0, 123, 255, 0);
+            }
+        }
+        .ai-pulse-ring {
+            box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.4);
+            animation: pulse-ring 2s infinite cubic-bezier(0.66, 0, 0, 1);
+        }
+
+        /* การเผยส่วนเมื่อเลื่อน (ควบคุมโดย JS) */
+        .section-animate {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 1s ease-out, transform 1s ease-out;
+        }
+
+        /* แอนิเมชัน Modal แบบเฟดอินสำหรับรูปภาพ */
+        @keyframes fade-in {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .animate-fade-in {
+            animation: fade-in 0.3s ease-out;
+        }
+
+        /* พื้นหลัง Nav แบบ Sticky พร้อมความเบลอ */
+        #navbar {
+            transition: background-color 0.3s ease;
+        }
+        
+        /* Custom Scrollbar สำหรับ Detail Modal (หากเนื้อหาล้น) */
+        #detail-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        #detail-content::-webkit-scrollbar-thumb {
+            background-color: #90caff;
+            border-radius: 4px;
+        }
+        
+        /* สไตล์ตารางสำหรับคะแนน */
+        .score-table th, .score-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .score-table th {
+            background-color: #f0f8ff;
+            color: #007bff;
+            font-weight: 700;
+        }
+
+        /* สไตล์ Carousel แบบ Custom สำหรับการเปลี่ยนสไลด์ที่ราบรื่น */
+        .carousel-slides {
+            display: flex;
+            transition: transform 0.4s ease-in-out;
+        }
+        .carousel-slide {
+            flex: 0 0 100%; /* แต่ละสไลด์กินพื้นที่ 100% ของความกว้างคอนเทนเนอร์ */
+            scroll-snap-align: start;
+        }
+    </style>
+    <!-- JavaScript ง่ายๆ สำหรับจำลองการเผยส่วนของหน้าจอ, จัดการ Modal และข้อมูลกิจกรรม -->
+    <script>
+        // ตัวแปรส่วนกลางสำหรับติดตามดัชนีสไลด์ปัจจุบัน
+        let currentSlide = 0;
+        let currentImageUrls = [];
+        
+        // ====================================================================
+        // START: ข้อมูลกิจกรรม (สำหรับใส่รูปภาพและรายละเอียดกิจกรรม)
+        // ** IMPORTANT: เปลี่ยน 'imageUrl' เป็น 'imageUrls' (เป็น Array) **
+        // ====================================================================
+        const activityDetails = {
+            'activity-01': {
+                title: 'พี่ Staff อบรมทำวิจัยและโครงงานคณิตศาสตร์',
+                role: 'พี่ Staff',
+                description: 'ได้รับหน้าที่เป็นพี่ Staff ในการอบรมทำวิจัยและโครงงานคณิตศาสตร์ของโรงเรียน มีหน้าที่สอนน้องๆ ใช้ AI ในการช่วยทำโครงงาน รวมถึงการพิสูจน์และการทำวิจัยโครงงาน ได้เรียนรู้ทักษะการทำงานร่วมกับผู้อื่น และการใช้ความรู้ด้านคณิตศาสตร์เพื่อแก้ปัญหา',
+                type: 'TECH & AI',
+                imageUrls: [
+                    'https://media.discordapp.net/attachments/1397231164267302912/1425012813952454726/IMG_5309.jpg?ex=68e60a1a&is=68e4b89a&hm=0e872c0223353b0070dcc8115456b85c52ed534c6e9a99848390e295bb2d218f&=&format=webp&width=1141&height=856',
+                    'https://cdn.discordapp.com/attachments/1397231164267302912/1425012813499334717/IMG_5308.jpg?ex=68e60a1a&is=68e4b89a&hm=b0030b94313cc980e0d490b47edbb4f2794234c2450d72171613c5759125e815&',
+                    'https://cdn.discordapp.com/attachments/1397231164267302912/1425021572535681064/IMG_2365.jpg?ex=68e61242&is=68e4c0c2&hm=e0f8babf3c0863045383ba096d937abc8efe922f65d89b41abaa823596ddf52e&'
+                ]
+            },
+            'activity-02': {
+                title: 'ค่าย ณ คณะเทคโนโลยีสารสนเทศ ม.มหาสารคาม',
+                role: 'ผู้เข้าร่วม',
+                description: 'เข้าร่วมค่ายเพื่อเรียนรู้การทำพอร์ตฟอลิโออย่างถูกต้อง การใช้ AI ในการสร้างสรรค์ผลงาน และการใช้โปรแกรมพื้นฐานต่างๆ เช่น Canva ได้รับการแนะแนวการศึกษาต่อในสาขาที่เกี่ยวข้องกับเทคโนโลยีสารสนเทศ',
+                type: 'TECH & AI',
+                imageUrls: [
+                    'https://media.discordapp.net/attachments/1397231164267302912/1425013436450078842/IMG_5358.jpg?ex=68e60aae&is=68e4b92e&hm=0623885eaa4e7f367aa32dc8a4202f3d137a1bd4d182633260246936dfb481a0&=&format=webp&width=1284&height=856',
+                    'https://media.discordapp.net/attachments/1397231164267302912/1425013109806071828/IMG_5353.jpg?ex=68e60a60&is=68e4b8e0&hm=4015237228f1571cd65ca3c903ba177f39ec663784880c1a11d088d13eb8cc65&=&format=webp&width=1141&height=856',
+                    'https://media.discordapp.net/attachments/1397231164267302912/1425013436198424706/IMG_5357.jpg?ex=68e60aae&is=68e4b92e&hm=05a107d40ba8eb73b4b0bdc134adda158bd354d6ae5c5094eae811345311dde7&=&format=webp&width=1284&height=856',
+                    'https://media.discordapp.net/attachments/1397231164267302912/1425012983343349801/IMG_5328.jpg?ex=68e60a42&is=68e4b8c2&hm=0f482b7aaa8fb0e2fa9a2e4039b4e4b4e3440f15052bb9f8122c75269cedbecf&=&format=webp&width=1141&height=856'
+                ]
+            },
+            'activity-03': {
+                title: 'โครงการเพิ่มทักษะทางวิชาการ (SMTE)',
+                role: 'ผู้เข้าร่วม',
+                description: 'ค่ายนี้จัดขึ้นเพื่อเพิ่มทักษะทางวิชาการให้แก่นักเรียนห้องเรียนพิเศษ SMTE มีกิจกรรมหลากหลาย เช่น การเขียนแบบ, การผ่าปลา, การทำยา, และการวิเคราะห์ลักษณะโรคจากภาพ ทำให้ได้ลองสิ่งใหม่ๆ ที่ไม่เคยทำมาก่อน',
+                type: 'TECH & AI',
+                imageUrls: [
+                    'https://cdn.discordapp.com/attachments/1397231164267302912/1425044062154522715/IMG_1171.jpg?ex=68e62734&is=68e4d5b4&hm=8ec59c071be81ff6b990421698e3b38d166a473fee083f5c100ad50cb90f452c&',
+                    'https://cdn.discordapp.com/attachments/1063384116965425214/1425366009014915195/IMG_1173.jpg?ex=68e7530a&is=68e6018a&hm=3a13dc0c16cf6fb8109a74816f099c4bc027cb8088b4ddde4902e9ce77f20d48&',
+                    'https://cdn.discordapp.com/attachments/1063384116965425214/1425366009677873172/IMG_1172.jpg?ex=68e7530a&is=68e6018a&hm=63a49270ec34e03d355eb6a85c9ccf111230fbe383670e0479a8274f755aef49',
+                ]
+            },
+            'activity-04': {
+                title: 'ค่ายอาสาพี่สอนน้อง',
+                role: 'ตากล้องและพี่เลี้ยง',
+                description: 'เข้าร่วมค่ายอาสาเพื่อดูแลเด็กๆ และทำหน้าที่เป็นตากล้องบันทึกภาพกิจกรรม ทำให้ได้เรียนรู้การทำงานร่วมกับผู้อื่น, การเป็นผู้นำและผู้ตามที่ดี, และฝึกฝนทักษะการใช้กล้องถ่ายภาพเพิ่มเติม',
+                type: 'GENERAL',
+                imageUrls: [
+                     'https://media.discordapp.net/attachments/1397231164267302912/1425012814761824318/IMG_5311.jpg?ex=68e60a1a&is=68e4b89a&hm=724f44ae37a4806576878d129bfdbf4425cfda2496ec24e923c3e342ff901a54&=&format=webp&width=1284&height=856',
+                    'https://media.discordapp.net/attachments/1397231164267302912/1425012815659532329/IMG_5312.jpg?ex=68e60a1a&is=68e4b89a&hm=451f44fb707d6ece0a5d7ae3cadf765c687109c7fcbc1b7c0dfb78eb45209af9&=&format=webp&width=570&height=856',
+                    'https://media.discordapp.net/attachments/1397231164267302912/1425012943652786257/IMG_5313.jpg?ex=68e60a39&is=68e4b8b9&hm=cbca009eedeaa8d022f8c4cb31813dd1f8b41fb7acf9b81bf71566fd3988917e&=&format=webp&width=642&height=856',
+                    'https://cdn.discordapp.com/attachments/1397231164267302912/1425012944889974824/IMG_5315.jpg?ex=68e60a39&is=68e4b8b9&hm=9572dd8913d02a09ae19697e2ab164f20f766247533264a299aad798e57808fb&',
+                    'https://media.discordapp.net/attachments/1397231164267302912/1425012944160166019/IMG_5314.jpg?ex=68e60a39&is=68e4b8b9&hm=34ec074a5d67a9ac837c86f4ab7e474cad893de15b84c7da4f13f7fca4bf14fe&=&format=webp&width=642&height=856',
+                    'https://media.discordapp.net/attachments/1397231164267302912/1425012945686892644/IMG_5316.jpg?ex=68e60a39&is=68e4b8b9&hm=a4db7b6c0864a96a47e682322246e39eb2532b72e829570107fdc471aef1af50&=&format=webp&width=1768&height=795',
+                    'https://media.discordapp.net/attachments/1397231164267302912/1425012946743988254/IMG_5318.jpg?ex=68e60a39&is=68e4b8b9&hm=dcd70a7355ee7b9b99bc3d815029ea07b34b200a906cbaa000ee2de5601d20a7&=&format=webp&width=1768&height=795'
+                ]
+            },
+            'activity-05': {
+                title: 'กิจกรรมจิตอาสา',
+                role: 'อาสาสมัคร',
+                description: 'เข้าร่วมกิจกรรมจิตอาสาต่างๆ เช่น การช่วยจัดพื้นอิฐ และช่วยงานบวชคุณครู แสดงให้เห็นถึงความมีจิตสาธารณะและความรับผิดชอบต่อสังคมและชุมชน',
+                type: 'GENERAL',
+                imageUrls: [
+                    'https://media.discordapp.net/attachments/1397231164267302912/1425012704912871555/IMG_5298.jpg?ex=68e60a00&is=68e4b880&hm=6e940e08548a50cc42b98c964dca431fe536dab788859c22cfa832a50cb9c5fe&=&format=webp&width=1375&height=856',
+                    'https://media.discordapp.net/attachments/1397231164267302912/1425012705483554816/IMG_5300.jpg?ex=68e60a00&is=68e4b880&hm=a6232d920649fb4a0667fe0690109c6a07dc7d93d64b1a339ee6126de402b72e&=&format=webp&width=1141&height=856',
+                    'https://media.discordapp.net/attachments/1397231164267302912/1425013107482431549/IMG_5344.jpg?ex=68e60a60&is=68e4b8e0&hm=7f2d1d64f9057dc882695ccf80b105a08bb2279bfbc23680957685e0aa15c0fc&=&format=webp&width=1142&height=856',
+                    'https://media.discordapp.net/attachments/1397231164267302912/1425013107788611665/IMG_5345.jpg?ex=68e60a60&is=68e4b8e0&hm=1cb068a901cd650479870c41261c44f2d6fcde50ab70c3a9f49cc3bfa806d32b&=&format=webp&width=1142&height=856'
+                ]
+            },
+            // NEW: Project detail for the main project card
+            'project-main': {
+                title: 'แบบจำลองไม้กั้น โดยใช้ เซนเซอร์อัลตราโซนิก',
+                role: 'หัวหน้าโครงงาน/วิจัย',
+                description: 'โครงงานนี้เป็นการประยุกต์ใช้ความรู้ด้านเทคโนโลยี (Arduino/Microcontroller) และฟิสิกส์ (อัลตราโซนิกเซนเซอร์) เพื่อสร้างแบบจำลองระบบไม้กั้นอัตโนมัติที่ทำงานได้อย่างแม่นยำและเสถียร ผลงานนี้ได้รับรางวัลชนะเลิศจากการนำเสนอโครงงานสาขาคอมพิวเตอร์ ซึ่งแสดงให้เห็นถึงความสามารถในการนำหลักการทางวิทยาศาสตร์และเทคโนโลยีมาแก้ปัญหาในชีวิตจริง และเป็นพื้นฐานสำคัญในการต่อยอดสู่การเขียนโปรแกรมควบคุมระบบ AI ในอนาคต',
+                type: 'RESEARCH & INNOVATION',
+                imageUrls: [
+                    'https://media.discordapp.net/attachments/1397231164267302912/1425013109512343593/IMG_5352.jpg?ex=68e60a60&is=68e4b8e0&hm=4ba56dda890112f02eab1a99ad9068b2002c73ca3aceba9b0efd7bab0bb21d6d&=&format=webp&width=642&height=856',
+                    'https://cdn.discordapp.com/attachments/1397231164267302912/1425013435934052363/IMG_5356.jpg?ex=68e60aae&is=68e4b92e&hm=08d782690869f6640199671a4550deb44e93d8d22c09779f7782c7ae65f21537&',
+                    'https://cdn.discordapp.com/attachments/1063384116965425214/1425366008750800919/IMG_1174.png?ex=68e7530a&is=68e6018a&hm=477687371f63e34466d2aab22369ee73769ada39658c7904be4c36c38c852796&',
+                    'https://cdn.discordapp.com/attachments/1063384116965425214/1425366008507666502/IMG_1175.png?ex=68e7530a&is=68e6018a&hm=82c48d283c3a667dcce34230b695adcef28c893c8486decfdaa01cebdcbf65ac',
+                ]
+            }
+        };
+        // ====================================================================
+        // END: ข้อมูลกิจกรรม
+        // ====================================================================
+        
+        // ====================================================================
+        // ตรรกะของสไลด์โชว์ (CAROUSEL LOGIC)
+        // ====================================================================
+        
+        /**
+         * ฟังก์ชันสำหรับจัดการการเลื่อนสไลด์
+         * @param {number} n - ทิศทางในการเลื่อน (+1 ไปข้างหน้า, -1 ถอยหลัง)
+         */
+        function changeSlide(n) {
+            currentSlide += n;
+            const totalSlides = currentImageUrls.length;
+
+            if (currentSlide >= totalSlides) {
+                currentSlide = 0; // วนกลับไปที่สไลด์แรก
+            } else if (currentSlide < 0) {
+                currentSlide = totalSlides - 1; // วนกลับไปที่สไลด์สุดท้าย
+            }
+
+            updateCarousel();
+        }
+
+        /**
+         * ฟังก์ชันสำหรับอัปเดตการแสดงผลของ Carousel
+         */
+        function updateCarousel() {
+            const slidesContainer = document.getElementById('carousel-slides');
+            const indicatorsContainer = document.getElementById('carousel-indicators');
+            const totalSlides = currentImageUrls.length;
+
+            if (!slidesContainer || !indicatorsContainer || totalSlides === 0) return;
+
+            // 1. อัปเดตตำแหน่งสไลด์
+            const offset = -currentSlide * 100;
+            slidesContainer.style.transform = `translateX(${offset}%)`;
+
+            // 2. อัปเดตตัวบ่งชี้ (Indicators)
+            Array.from(indicatorsContainer.children).forEach((dot, index) => {
+                dot.classList.remove('bg-blue-500');
+                dot.classList.add('bg-gray-300', 'hover:bg-gray-400');
+                if (index === currentSlide) {
+                    dot.classList.remove('bg-gray-300', 'hover:bg-gray-400');
+                    dot.classList.add('bg-blue-500');
+                }
+            });
+            
+            // 3. อัปเดตตัวนับสไลด์
+            document.getElementById('slide-counter').textContent = `${currentSlide + 1} / ${totalSlides}`;
+        }
+        
+        /**
+         * ฟังก์ชันสำหรับสร้างสไลด์และ Indicators
+         */
+        function initializeCarousel(imageUrls) {
+            const slidesContainer = document.getElementById('carousel-slides');
+            const indicatorsContainer = document.getElementById('carousel-indicators');
+            
+            slidesContainer.innerHTML = ''; // ล้างสไลด์ก่อนหน้า
+            indicatorsContainer.innerHTML = ''; // ล้างตัวบ่งชี้ก่อนหน้า
+            currentSlide = 0; // รีเซ็ตดัชนีสไลด์
+
+            imageUrls.forEach((url, index) => {
+                // สร้างสไลด์ (เพิ่ม flex centering เพื่อให้รูปภาพ object-contain อยู่ตรงกลาง)
+                const slide = document.createElement('div');
+                slide.className = 'carousel-slide p-2 sm:p-4 flex justify-center items-center'; // เพิ่ม padding สำหรับรูปภาพด้านใน
+                slide.innerHTML = `<img src="${url}" alt="รูปภาพกิจกรรม ${index + 1}" class="w-full h-full object-contain rounded-lg shadow-xl" onerror="this.onerror=null;this.src='https://placehold.co/800x600/F0F8FF/007bff?text=ไม่พบรูปภาพ';">`;
+                slidesContainer.appendChild(slide);
+
+                // สร้างจุดบ่งชี้
+                const dot = document.createElement('button');
+                dot.className = 'w-3 h-3 rounded-full mx-1 transition-colors duration-200';
+                dot.setAttribute('onclick', `goToSlide(${index})`);
+                indicatorsContainer.appendChild(dot);
+            });
+            
+            updateCarousel(); // การแสดงผลเริ่มต้น
+        }
+        
+        /**
+         * ฟังก์ชันสำหรับเปลี่ยนสไลด์ไปยัง Index ที่ต้องการ
+         * @param {number} index - index ของสไลด์ที่ต้องการไป
+         */
+        function goToSlide(index) {
+            currentSlide = index;
+            updateCarousel();
+        }
+        
+        // ====================================================================
+        // END ตรรกะของสไลด์โชว์
+        // ====================================================================
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('section').forEach(section => {
+                section.classList.add('section-animate');
+                observer.observe(section);
+            });
+            
+            // ตั้งค่าสถานะเริ่มต้นสำหรับพื้นหลัง Navbar แบบ Sticky
+            const navbar = document.getElementById('navbar');
+            const header = document.getElementById('top');
+            
+            const updateNavBackground = () => {
+                if (window.scrollY > header.offsetHeight - navbar.offsetHeight - 50) {
+                    navbar.classList.remove('bg-white/95');
+                    navbar.classList.add('bg-white');
+                    navbar.classList.add('shadow-lg');
+                } else {
+                    navbar.classList.add('bg-white/95');
+                    navbar.classList.remove('shadow-lg');
+                }
+            };
+            
+            // ตรวจสอบตำแหน่งการเลื่อนเมื่อโหลดและเมื่อมีการเลื่อน
+            updateNavBackground();
+            window.addEventListener('scroll', updateNavBackground);
+        });
+
+        /**
+         * ฟังก์ชันสำหรับเปิด Modal แสดงรูปภาพเต็ม (สำหรับเกียรติบัตรเท่านั้น)
+         * @param {string} imgId - ID ของ Element รูปภาพที่ถูกคลิก
+         */
+        function openImageModal(imgId) {
+            const imgElement = document.getElementById(imgId);
+            const modal = document.getElementById('image-modal');
+            const modalImage = document.getElementById('modal-image');
+            
+            if (imgElement && modal && modalImage) {
+                modalImage.src = imgElement.src;
+                modal.classList.remove('hidden');
+                setTimeout(() => modal.classList.add('opacity-100'), 10);
+            } else {
+                console.error('ไม่พบองค์ประกอบ Image Modal หรือรูปภาพเป้าหมาย');
+            }
+        }
+
+        // ฟังก์ชันสำหรับปิด Image Modal
+        function closeImageModal() {
+            const modal = document.getElementById('image-modal');
+            if (modal) {
+                modal.classList.remove('opacity-100');
+                setTimeout(() => modal.classList.add('hidden'), 300); 
+            }
+        }
+
+        /**
+         * ฟังก์ชันสำหรับเปิด Modal แสดงรายละเอียดกิจกรรม (สำหรับกิจกรรมและโครงงาน)
+         * @param {string} itemId - ID ของ Activity/Project ใน activityDetails object
+         */
+        function openDetailModal(itemId) {
+            const data = activityDetails[itemId];
+            const modal = document.getElementById('detail-modal');
+            
+            if (!data || !data.imageUrls || data.imageUrls.length === 0) {
+                console.error(`ไม่พบข้อมูลรายละเอียดสำหรับ ID '${itemId}' หรือไม่มีรูปภาพ`);
+                return;
+            }
+            
+            // กำหนด Array รูปภาพส่วนกลางสำหรับตรรกะสไลด์โชว์
+            currentImageUrls = data.imageUrls;
+
+            // กรอกเนื้อหา Modal
+            document.getElementById('detail-title').textContent = data.title;
+            document.getElementById('detail-role').textContent = data.role;
+            document.getElementById('detail-type').textContent = data.type;
+            document.getElementById('detail-description').textContent = data.description;
+            
+            // เริ่มต้นสไลด์โชว์รูปภาพด้วยข้อมูลใหม่
+            initializeCarousel(currentImageUrls);
+
+            // แสดง Modal
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.add('opacity-100'), 10);
+        }
+
+        // ฟังก์ชันสำหรับปิด Detail Modal
+        function closeDetailModal() {
+            const modal = document.getElementById('detail-modal');
+            if (modal) {
+                modal.classList.remove('opacity-100');
+                setTimeout(() => modal.classList.add('hidden'), 300); 
+            }
+        }
+        
+        // เพิ่ม Event Listener เพื่อปิด Modal เมื่อคลิกนอกเนื้อหา
+        document.addEventListener('click', (e) => {
+            const imageModal = document.getElementById('image-modal');
+            if (imageModal && !imageModal.classList.contains('hidden') && e.target === imageModal) {
+                closeImageModal();
+            }
+            
+            const detailModal = document.getElementById('detail-modal');
+            if (detailModal && !detailModal.classList.contains('hidden') && e.target === detailModal) {
+                closeDetailModal();
+            }
+        });
+        
+        // ====================================================================
+        // ตรรกะการสัมผัส/ปัดสำหรับสไลด์โชว์ (รองรับมือถือ)
+        // ====================================================================
+        let touchStartX = 0;
+
+        function handleTouchStart(e) {
+            touchStartX = e.touches[0].clientX;
+        }
+
+        function handleTouchMove(e) {
+            if (!touchStartX) return;
+            const touchEndX = e.touches[0].clientX;
+            const diffX = touchStartX - touchEndX;
+
+            if (Math.abs(diffX) > 50) { // เกณฑ์สำหรับการปัด
+                if (diffX > 0) {
+                    changeSlide(1); // ปัดซ้าย -> สไลด์ถัดไป
+                } else {
+                    changeSlide(-1); // ปัดขวา -> สไลด์ก่อนหน้า
+                }
+                touchStartX = 0; // รีเซ็ตหลังจากการปัดสำเร็จ
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // ... ตรรกะ DOMContentLoaded ที่มีอยู่ ...
+            
+            const carousel = document.getElementById('image-carousel-container');
+            if (carousel) {
+                carousel.addEventListener('touchstart', handleTouchStart, false);
+                carousel.addEventListener('touchmove', handleTouchMove, false);
+            }
+        });
+        
+    </script>
+</head>
+<body class="antialiased">
+
+    <!-- ใหม่: แถบนำทางแบบ Sticky (ไม่เปลี่ยนแปลง) -->
+    <nav id="navbar" class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- โลโก้/ชื่อ -->
+                <a href="#top" class="flex-shrink-0 font-bold text-xl ai-primary hover:text-blue-700 transition-colors">
+                    <span class="text-gray-900">Non</span><span class="ai-primary">Atthanon</span>
+                </a>
+                
+                <!-- ลิงก์นำทางสำหรับเดสก์ท็อป -->
+                <div class="hidden md:flex space-x-8">
+                    <a href="#profile" class="text-gray-600 hover:text-blue-500 font-medium transition-colors">ข้อมูลส่วนตัว</a>
+                    <a href="#projects" class="text-gray-600 hover:text-blue-500 font-medium transition-colors">ผลงาน (Projects)</a>
+                    <a href="#activities" class="text-gray-600 hover:text-blue-500 font-medium transition-colors">กิจกรรม</a>
+                    <a href="#certificates" class="text-gray-600 hover:text-blue-500 font-medium transition-colors">เกียรติบัตร</a>
+                </div>
+                
+                <!-- ปุ่มติดต่อ -->
+                <a href="#contact-footer" class="hidden md:inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-full text-white bg-blue-500 hover:bg-blue-600 transition-colors shadow-md">
+                    ติดต่อ
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ส่วนหัว (Header) - ธีมสว่าง -->
+    <header id="top" class="header-bg relative pt-16 pb-24 md:pt-24 md:pb-32 text-center border-b border-gray-200">
+        <div class="relative z-10 max-w-4xl mx-auto px-6">
+            
+            <!-- Placeholder รูปโปรไฟล์ (พร้อม ID ให้คุณเปลี่ยนรูป) -->
+            <div class="mb-8 mx-auto w-32 h-32 md:w-40 md:h-40 rounded-full ai-pulse-ring overflow-hidden bg-gray-200 border-4 border-white shadow-xl">
+                <!-- ** แทนที่ด้วย URL รูปภาพโปรไฟล์ของคุณ (ID: profile-img) ** -->
+                <img id="profile-img" 
+                     src="https://media.discordapp.net/attachments/1397231164267302912/1425012702643748874/IMG_5202.jpg?ex=68e609ff&is=68e4b87f&hm=4f752c22541074be65d9dbb217b208b206e3b9f42df4bec38490bc0d2141bff4&=&format=webp&width=1284&height=856" 
+                     alt="[รูปภาพ: นายอรรถนนท์ เกษร]" 
+                     class="w-full h-full object-cover">
+            </div>
+
+            <p class="text-lg uppercase tracking-widest text-gray-500 mb-2">PORT-FOLIO</p>
+            <h1 class="text-4xl sm:text-6xl md:text-7xl font-extrabold leading-tight mb-4 text-gray-900">
+                นาย อรรถนนท์ เกษร
+            </h1>
+            <p class="text-xl sm:text-2xl text-gray-600 mb-8">
+                คณะวิทยาลัยการคอมพิวเตอร์ <span class="ai-primary font-bold">สาขาปัญญาประดิษฐ์ (โครงการพิเศษ)</span>
+                <br>
+                มหาวิทยาลัยขอนแก่น
+            </p>
+            <div class="inline-block px-8 py-3 rounded-full bg-blue-500/10 border border-blue-200 transition-all duration-300 hover:bg-blue-500/20">
+                <span class="text-base sm:text-lg font-semibold ai-primary">
+                    "คอมพิวเตอร์คืออนาคต <span class="font-bold">และ AI คือสิ่งที่ผมอยากร่วมพัฒนา</span>"
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 sm:-mt-24 relative z-20">
+
+        <!-- ส่วนข้อมูลส่วนตัว: ข้อมูลส่วนตัวและทักษะ (Data Core) -->
+        <section id="profile" class="mb-20 pt-16">
+            <h2 class="text-3xl font-bold mb-8 border-b-4 border-blue-500 pb-2 text-gray-800 inline-block">DATA CORE: ข้อมูลส่วนตัว & ผลการเรียน</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+
+                <!-- การ์ดข้อมูลส่วนตัว -->
+                <div class="ai-card-bg p-8 rounded-xl col-span-1">
+                    <h3 class="text-xl font-bold ai-primary mb-4 flex items-center">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        ข้อมูลส่วนตัว & GPAX
+                    </h3>
+                    <p class="mb-2"><span class="font-semibold text-gray-600">ชื่อเล่น:</span> นนท์</p>
+                    <p class="mb-2"><span class="font-semibold text-gray-600">วันเกิด/อายุ:</span> 4 มิถุนายน 2550 (18 ปี)</p>
+                    <p class="mb-2"><span class="font-semibold text-gray-600">แผนการเรียน:</span> SMTE</p>
+                    <p class="text-3xl font-extrabold mt-4 ai-primary"><span class="text-base font-normal text-gray-500">GPAX (4 เทอม):</span> 3.30</p>
+                    <div>
+
+                    </div>
+                    <div></div>
+                    <a href="https://drive.google.com/drive/folders/13AM8EKMR8f1newpCrtvv92axA3pNdXT3?usp=drive_link" target="_blank" class="hidden md:inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-full text-white bg-blue-500 hover:bg-blue-600 transition-colors shadow-md">
+                    ดูใบประกอบผลการเรียน
+                    </a>
+                    <hr class="my-6 border-blue-100">
+                    
+                    <!-- NETSAT SCORE (คะแนนจริง) -->
+                    <h4 class="text-lg font-bold text-gray-700 mb-3">คะแนน NETSAT (รอบที่ 2) ปี 2567 </h4>
+                    <div class="bg-blue-500/10 p-4 rounded-lg">
+                        <table class="w-full text-sm text-gray-700 score-table">
+                            <thead>
+                                <tr>
+                                    <th>วิชา</th>
+                                    <th>คะแนน</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>ความฉลาดรู้ภาษาไทย</td>
+                                    <td class="font-bold text-blue-700">60.00</td> 
+                                </tr>
+                                <tr>
+                                    <td>ความฉลาดรู้ภาษาอังกฤษ</td>
+                                    <td class="font-bold text-blue-700">43.00</td> 
+                                </tr>
+                                <tr>
+                                    <td>ความฉลาดรู้คณิตศาสตร์</td>
+                                    <td class="font-bold text-blue-700">25.00</td> 
+                                </tr>
+                                <tr>
+                                    <td>ความฉลาดรู้ฟิสิกส์</td>
+                                    <td class="font-bold text-blue-700">50.00</td> 
+                                </tr>
+                                <tr>
+                                    <td>ความฉลาดรู้ วิทยาศาสตร์และเทคโนโลยี</td>
+                                    <td class="font-bold text-blue-700">42.50</td> 
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="text-xs text-gray-500 mt-2 text-right">**อ้างอิงคะแนนสอบ NETSAT (รอบที่ 2) ปี 2567**</p> <a href="https://drive.google.com/drive/folders/1viP5tDpq5f3KpHiZEQVJNtkXlBSPISdL?usp=sharing" target="_blank" class="hidden md:inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-full text-white bg-blue-500 hover:bg-blue-600 transition-colors shadow-md">คลิกดูรายละเอียด</a>
+                    </div>
+                </div>
+
+                <!-- Academic/Skills Card -->
+                <div class="ai-card-bg p-8 rounded-xl col-span-2">
+                    <h3 class="text-xl font-bold ai-primary mb-4 flex items-center">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.657 0 3 .895 3 2s-1.343 2-3 2-3-.895-3-2 1.343-2 3-2zM4 16h16a1 1 0 011 1v1a1 1 0 01-1 1H4a1 1 0 01-1-1v-1a1 1 0 011-1z"></path></svg>
+                        เกรดเฉลี่ยกลุ่มสาระ (GPA)
+                    </h3>
+                    
+                    <!-- GPA ตามกลุ่มสาระวิชา -->
+                    <div class="mb-8">
+                        <h4 class="font-semibold text-gray-700 uppercase border-b pb-1 mb-2">GPA กลุ่มสาระหลัก (4 เทอม)</h4>
+                        <table class="w-full text-base text-gray-700 score-table rounded-lg overflow-hidden">
+                            <thead>
+                                <tr class="bg-blue-500/20">
+                                    <th>กลุ่มสาระ</th>
+                                    <th>GPA (4 เทอม)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="font-medium text-gray-800">คณิตศาสตร์</td>
+                                    <td class="font-bold text-green-600">3.34</td> 
+                                </tr>
+                                <tr>
+                                    <td class="font-medium text-gray-800">วิทยาศาสตร์และเทคโนโลยี</td>
+                                    <td class="font-bold text-green-600">3.07</td> 
+                                </tr>
+                                <tr>
+                                    <td class="font-medium text-gray-800">ภาษาต่างประเทศ (อังกฤษ)</td>
+                                    <td class="font-bold text-green-600">3.30</td> 
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+
+                    <!-- Skills -->
+                    <h3 class="text-xl font-bold ai-primary mb-4 flex items-center">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                        ทักษะ (SKILLS)
+                    </h3>
+                    
+                    <div class="mb-6">
+                        <p class="font-semibold text-gray-700 uppercase border-b pb-1 mb-2">เทคโนโลยีและการพัฒนา</p>
+                        <div class="flex flex-wrap mt-2">
+                            <span class="bg-blue-500 text-white text-sm px-4 py-1 rounded-full m-1 shadow-md transition-colors duration-300 hover:bg-blue-600">Python (พื้นฐาน)</span>
+                            <span class="bg-blue-500 text-white text-sm px-4 py-1 rounded-full m-1 shadow-md transition-colors duration-300 hover:bg-blue-600">HTML5 (พื้นฐาน)</span>
+                            <span class="bg-blue-500 text-white text-sm px-4 py-1 rounded-full m-1 shadow-md transition-colors duration-300 hover:bg-blue-600">Arduino IDE & VS Code</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="font-semibold text-gray-700 uppercase border-b pb-1 mb-2">สื่อและความคิดสร้างสรรค์</p>
+                        <div class="flex flex-wrap mt-2">
+                            <span class="bg-green-500 text-white text-sm px-4 py-1 rounded-full m-1 shadow-md transition-colors duration-300 hover:bg-green-600">ตัดต่อ Sony Vegas/After effect</span>
+                            <span class="bg-green-500 text-white text-sm px-4 py-1 rounded-full m-1 shadow-md transition-colors duration-300 hover:bg-green-600">ร้องเพลง</span>
+                            <span class="bg-green-500 text-white text-sm px-4 py-1 rounded-full m-1 shadow-md transition-colors duration-300 hover:bg-green-600">เล่นกีต้าร์/ตีกลอง</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ส่วนความมุ่งมั่น: ความมุ่งมั่นด้าน AI -->
+        <section id="aspiration" class="mb-20 pt-16">
+            <div class="ai-secondary-bg p-10 rounded-xl border-l-8 border-blue-500">
+                <h2 class="text-3xl font-bold mb-4 ai-primary">ทำไมผมถึงเลือกสาขาปัญญาประดิษฐ์ มหาวิทยาลัยขอนแก่น</h2>
+                <div class="text-gray-700 space-y-4 text-lg">
+                    <p>ผมมีความหลงใหลในด้านคอมพิวเตอร์มาตั้งแต่เด็ก ไม่ว่าจะเป็นการซ่อมคอมพิวเตอร์ หรือการฝึกเขียนโปรแกรมพื้นฐาน ความชอบเหล่านี้ได้หล่อหลอมให้ผมเห็นว่า **AI คืออนาคต** และผมต้องการเป็นส่วนหนึ่งในการพัฒนาเทคโนโลยีนี้</p>
+                    <p>การเลือกเรียนใน <span class="font-bold text-gray-900">วิทยาลัยการคอมพิวเตอร์ สาขาปัญญาประดิษฐ์ (โครงการพิเศษ) มหาลัยวิทยาลัยขอนแก่น</span> จึงเป็นเป้าหมายสูงสุด เพราะเป็นหลักสูตรที่เจาะลึกด้าน AI โดยตรง มอบโอกาสที่มากกว่า และเป็นสถาบันในดวงใจมาตลอด ผมมีความมุ่งมั่นที่จะพัฒนาตัวเองอย่างไม่หยุดยั้ง เพื่อสานต่อความฝันในการเรียนต่อในระดับปริญญาโทและเอกต่อไปในอนาคต</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ส่วนผลงาน: ผลงานที่ภูมิใจ (Innovation) -->
+        <section id="projects" class="mb-20 pt-16">
+            <h2 class="text-3xl font-bold mb-8 border-b-4 border-blue-500 pb-2 text-gray-800 inline-block">INNOVATION: ผลงานที่ภูมิใจ</h2>
+            
+            <!-- โครงงานหลักถูกทำให้เป็น clickable เพื่อดูรายละเอียดใน Detail Modal -->
+            <div class="ai-card-bg p-8 rounded-xl flex flex-col lg:flex-row items-start lg:space-x-8 border border-gray-100 cursor-pointer transition-all duration-300 hover:shadow-xl hover:border-blue-400"
+                 onclick="openDetailModal('project-main')"> <!-- ตอนนี้ใช้ Modal ใหม่ -->
+                
+                <!-- Placeholder สำหรับรูปภาพโครงงาน -->
+                <div class="lg:w-1/3 w-full mb-6 lg:mb-0 order-first lg:order-last">
+                    <img id="project-img" 
+                         src="https://media.discordapp.net/attachments/1397231164267302912/1425013108618952844/IMG_5349.jpg?ex=68e60a60&is=68e4b8e0&hm=3d00fdc513c20a1155e2077d787e5f2176d54aa5e7243bae63ecb591079f131b&=&format=webp&width=1229&height=856" 
+                         alt="[ภาพโครงงาน: แบบจำลองไม้กั้นโดยใช้เซนเซอร์อัลตราโซนิก]" 
+                         class="w-full h-auto rounded-lg object-cover border-4 border-blue-100 transition-transform duration-300 hover:scale-[1.03]">
+                    <p class="text-center text-sm text-gray-500 mt-2">[ภาพจำลอง: แบบจำลองไม้กั้น] (คลิกเพื่อดูรายละเอียด)</p>
+                </div>
+
+                <div class="lg:w-2/3 order-last lg:order-first">
+                    <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">โครงงานวิจัย (SMTE)</p>
+                    <h3 class="text-3xl font-extrabold ai-primary mb-4">
+                        แบบจำลองไม้กั้น โดยใช้ เซนเซอร์อัลตราโซนิก
+                    </h3>
+                    <p class="text-gray-700 mb-6 text-lg">
+                        โครงงานนี้จัดทำขึ้นในโครงการห้องเรียนพิเศษ SMTE ซึ่งเป็นการประยุกต์ใช้ความรู้ด้านคอมพิวเตอร์และเทคโนโลยีมาสร้างแบบจำลองการทำงานของไม้กั้นอัตโนมัติ โดยใช้ **เซนเซอร์อัลตราโซนิก** ในการตรวจจับวัตถุ
+                    </p>
+                    <div class="bg-yellow-500/10 text-yellow-700 px-4 py-2 rounded-lg font-bold inline-block border border-yellow-300">
+                        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.071 2.071a1.5 1.5 0 010 2.122L10 17l-4 4 4-4 4 4 4-4 4-4-4-4-4-4z"></path></svg>
+                        ความสำเร็จ: รางวัลชนะเลิศ การนำเสนอโครงงานสาขาคอมพิวเตอร์ (คลิกเพื่อดูรายละเอียดเพิ่มเติม)
+                    </div>
+                </div>
+                
+            </div>
+        </section>
+        
+        <!-- ส่วนกิจกรรม: กิจกรรมที่เข้าร่วม -->
+        <section id="activities" class="mb-20 pt-16">
+            <h2 class="text-3xl font-bold mb-8 border-b-4 border-blue-500 pb-2 text-gray-800 inline-block">GROWTH TRAJECTORY: กิจกรรมที่เข้าร่วม</h2>
+            <p class="text-gray-600 mb-8">
+                คลิกที่การ์ดกิจกรรมเพื่อดูภาพประกอบหลายมุมมองและรายละเอียดเชิงลึกของแต่ละกิจกรรม.
+            </p>
+
+            <!-- กลุ่ม 1: Tech & AI Focus (เน้นด้านเทคโนโลยีและ AI) -->
+            <h3 class="text-xl font-bold ai-primary mb-4">A. Tech & AI Focus (เน้นด้านเทคโนโลยี คณิต และ AI)</h3>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- Activity 1: พี่ Staff -->
+                <div class="ai-card-bg p-6 rounded-xl border border-blue-100 cursor-pointer transition-all duration-300 hover:shadow-xl hover:border-blue-400"
+                     onclick="openDetailModal('activity-01')">
+                    <p class="text-lg font-semibold mb-2 text-gray-800">อบรมการทำวิจัยและโครงงานคณิตศาสตร์</p>
+                    <p class="text-sm text-gray-500 mb-2">บทบาท: <span class="ai-primary font-semibold">พี่ Staff</span></p>
+                    <p class="text-gray-700 line-clamp-3">สิ่งที่ได้: สอนน้องๆ ใช้ AI ในการช่วยทำโครงงาน รวมถึงการพิสูจน์และการทำวิจัยโครงงาน ได้เรียนรู้การทำงานร่วมกับผู้อื่น...</p>
+                    <span class="text-sm font-bold ai-primary mt-2 block">คลิกดูรายละเอียด & รูปภาพ</span>
+                </div>
+                
+                <!-- Activity 2: ค่าย ม.มหาสารคาม -->
+                <div class="ai-card-bg p-6 rounded-xl border border-blue-100 cursor-pointer transition-all duration-300 hover:shadow-xl hover:border-blue-400"
+                     onclick="openDetailModal('activity-02')">
+                    <p class="text-lg font-semibold mb-2 text-gray-800">ค่าย ณ คณะเทคโนโลยีสารสนเทศ ม.มหาสารคาม</p>
+                    <p class="text-sm text-gray-500 mb-2">บทบาท: ผู้เข้าร่วม</p>
+                    <p class="text-gray-700 line-clamp-3">สิ่งที่ได้: ได้รับความรู้ในการทำพอร์ต การใช้ AI และการใช้โปรแกรมพื้นฐาน เช่น Canva พร้อมแนะแนวด้านการเรียนต่อ...</p>
+                    <span class="text-sm font-bold ai-primary mt-2 block">คลิกดูรายละเอียด & รูปภาพ</span>
+                </div>
+                
+                <!-- Activity 3: โครงการเพิ่มทักษะ -->
+                <div class="ai-card-bg p-6 rounded-xl border border-blue-100 cursor-pointer transition-all duration-300 hover:shadow-xl hover:border-blue-400"
+                     onclick="openDetailModal('activity-03')">
+                    <p class="text-lg font-semibold mb-2 text-gray-800">โครงการเพิ่มทักษะทางวิชาการ (SMTE)</p>
+                    <p class="text-sm text-gray-500 mb-2">บทบาท: ผู้เข้าร่วม</p>
+                    <p class="text-gray-700 line-clamp-3">สิ่งที่ได้: ได้ลองสิ่งใหม่ๆ ไม่เยอะมาก เช่น การผ่าปลา, การเขียนแบบ, การทำยา, และการวิเคราะห์ลักษณะโรคจากภาพ ทำให้ได้ลองสิ่งใหม่ๆ ที่ไม่เคยทำมาก่อน...</p>
+                    <span class="text-sm font-bold ai-primary mt-2 block">คลิกดูรายละเอียด & รูปภาพ</span>
+                </div>
+            </div>
+            
+            <!-- กลุ่ม 2: General Skills (ทักษะทั่วไป) -->
+            <h3 class="text-xl font-bold text-gray-600 mt-10 mb-4">B. General Skills (ทักษะทั่วไป)</h3>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- Activity 4: ค่ายอาสา -->
+                <div class="ai-card-bg p-6 rounded-xl border border-gray-200 cursor-pointer transition-all duration-300 hover:shadow-xl hover:border-blue-400"
+                     onclick="openDetailModal('activity-04')">
+                    <p class="text-lg font-semibold mb-2 text-gray-800">ค่ายอาสาพี่สอนน้อง</p>
+                    <p class="text-sm text-gray-500 mb-2">บทบาท: ตากล้องและพี่เลี้ยง</p>
+                    <p class="text-gray-700 line-clamp-3">สิ่งที่ได้: ได้เรียนรู้การทำงานร่วมกับผู้อื่น และการใช้กล้องเพิ่มเติม ได้เป็นคนคอยดูแลเด็กๆ...</p>
+                    <span class="text-sm font-bold ai-primary mt-2 block">คลิกดูรายละเอียด & รูปภาพ</span>
+                </div>
+                
+                <!-- Activity 5: จิตอาสา -->
+                <div class="ai-card-bg p-6 rounded-xl border border-gray-200 cursor-pointer transition-all duration-300 hover:shadow-xl hover:border-blue-400"
+                     onclick="openDetailModal('activity-05')">
+                    <p class="text-lg font-semibold mb-2 text-gray-800">กิจกรรมจิตอาสา</p>
+                    <p class="text-sm text-gray-500 mb-2">บทบาท: อาสาสมัคร</p>
+                    <p class="text-gray-700 line-clamp-3">สิ่งที่ได้: ช่วยจัดพื้นอิฐ, ช่วยงานบวชคุณครู แสดงถึงความรับผิดชอบต่อสังคม...</p>
+                    <span class="text-sm font-bold ai-primary mt-2 block">คลิกดูรายละเอียด & รูปภาพ</span>
+                </div>
+                
+            </div>
+        </section>
+
+        <!-- ส่วนเกียรติบัตร: เกียรติบัตรทั้งหมด -->
+        <section id="certificates" class="mb-20 pt-16">
+            <h2 class="text-3xl font-bold mb-8 border-b-4 border-blue-500 pb-2 text-gray-800 inline-block">CERTIFICATES: พยานหลักฐานความมุ่งมั่น</h2>
+
+            <p class="text-gray-600 mb-8">
+                การเข้าร่วมกิจกรรมและการเรียนรู้อย่างต่อเนื่อง สะท้อนถึงความมุ่งมั่นในการพัฒนาตนเองทั้งด้านวิชาการและทักษะเฉพาะทาง (คลิกที่รูปภาพเพื่อดูภาพขนาดใหญ่)
+            </p>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                
+                <!-- Placeholder เกียรติบัตร 1 (ID: cert-01-img) -->
+                <div class="ai-card-bg p-4 rounded-xl text-center cursor-pointer hover:shadow-2xl hover:border-blue-400 transition-all duration-300" onclick="openImageModal('cert-01-img')">
+                    <!-- ** แทนที่ด้วย URL รูปภาพเกียรติบัตรของคุณ (ID: cert-01-img) ** -->
+                    <img id="cert-01-img" 
+                         src="https://media.discordapp.net/attachments/1397231164267302912/1425013108618952844/IMG_5349.jpg?ex=68e60a60&is=68e4b8e0&hm=3d00fdc513c20a1155e2077d787e5f2176d54aa5e7243bae63ecb591079f131b&=&format=webp&width=1229&height=856" 
+                         alt="[ภาพ: เกียรติบัตรโครงงานคอมพิวเตอร์]" 
+                         class="w-full h-auto rounded-lg mb-3 object-cover border border-gray-200 transition-transform duration-300 hover:scale-[1.02]">
+                    <p class="text-sm font-semibold ai-primary">รางวัลชนะเลิศ</p>
+                    <p class="text-xs text-gray-500">รางวัลชนะเลิศโครงงาน สาขาคอมพิวเตอร์</p>
+                </div>
+                
+                <!-- Placeholder เกียรติบัตร 2 (ID: cert-02-img) -->
+                <div class="ai-card-bg p-4 rounded-xl text-center cursor-pointer hover:shadow-2xl hover:border-blue-400 transition-all duration-300" onclick="openImageModal('cert-02-img')">
+                    <!-- ** แทนที่ด้วย URL รูปภาพเกียรติบัตรของคุณ (ID: cert-02-img) ** -->
+                    <img id="cert-02-img" 
+                         src="https://media.discordapp.net/attachments/1397231164267302912/1425033043864715285/IMG_5350.jpg?ex=68e61cf1&is=68e4cb71&hm=e7e49eebdac66cc93fd662f189b73b39ed5f2bb83dc68e765b0d01f62532d825&=&format=webp&width=1195&height=856" 
+                         alt="[ภาพ: เกียรติบัตรโครงการ SMTE]" 
+                         class="w-full h-auto rounded-lg mb-3 object-cover border border-gray-200 transition-transform duration-300 hover:scale-[1.02]">
+                    <p class="text-sm font-semibold ai-primary">โครงการเพิ่มทักษะ</p>
+                    <p class="text-xs text-gray-500">โครงการห้องเรียนพิเศษ SMTE</p>
+                </div>
+                
+                <!-- Placeholder เกียรติบัตร 3 (ID: cert-03-img) -->
+                <div class="ai-card-bg p-4 rounded-xl text-center cursor-pointer hover:shadow-2xl hover:border-blue-400 transition-all duration-300" onclick="openImageModal('cert-03-img')">
+                    <!-- ** แทนที่ด้วย URL รูปภาพเกียรติบัตรของคุณ (ID: cert-03-img) ** -->
+                    <img id="cert-03-img" 
+                         src="https://media.discordapp.net/attachments/1397231164267302912/1425037297803591722/IMG_5384.png?ex=68e620e7&is=68e4cf67&hm=e0e3f204bc9189a135096f7decc3452c67ecd3fae8f8b806b850fc2eca1d5c2e&=&format=webp&quality=lossless" 
+                         alt="[ภาพ: เกียรติบัตรค่าย มมส]" 
+                         class="w-full h-auto rounded-lg mb-3 object-cover border border-gray-200 transition-transform duration-300 hover:scale-[1.02]">
+                    <p class="text-sm font-semibold ai-primary">โครงการ ฝึกปฏิบัติการทาง วิทยาศาสตร์</p>
+                    <p class="text-xs text-gray-500">การฝึกปฏิบัติการ นี้ทางห้องเรียน SMTE ทุกคนเข้าร่วมทุกปี ตั้งแต่มต้น ผมจึงได้ประสบการณ์ต่างๆ จากมหาลัยมากกว่าใน ห้องเรียนมัธยม มาทุกๆปี </p>
+                </div>
+                
+                <!-- Placeholder เกียรติบัตร 4 (ID: cert-04-img) -->
+                <div class="ai-card-bg p-4 rounded-xl text-center cursor-pointer hover:shadow-2xl hover:border-blue-400 transition-all duration-300" onclick="openImageModal('cert-04-img')">
+                    <!-- ** แทนที่ด้วย URL รูปภาพเกียรติบัตรของคุณ (ID: cert-04-img) ** -->
+                    <img id="cert-04-img" 
+                         src="https://media.discordapp.net/attachments/1397231164267302912/1425033043495747604/IMG_5348.jpg?ex=68e61cf1&is=68e4cb71&hm=81d6bd8fb891cec589d0d93aecb49aac2d5c14070cd15201a01089e12ab87820&=&format=webp&width=1255&height=856" 
+                         alt="[ภาพ: เกียรติบัตรพี่ Staff]" 
+                         class="w-full h-auto rounded-lg mb-3 object-cover border border-gray-200 transition-transform duration-300 hover:scale-[1.02]">
+                    <p class="text-sm font-semibold ai-primary">พี่ Staff</p>
+                    <p class="text-xs text-gray-500">อบรมการทำวิจัยและโครงงานคณิตศาสตร์</p>
+                </div>
+
+                <!-- เพิ่มพื้นที่สำหรับเกียรติบัตรอื่นๆ -->
+                <div class="ai-card-bg p-4 rounded-xl text-center cursor-pointer hover:shadow-2xl hover:border-blue-400 transition-all duration-300" onclick="openImageModal('cert-05-img')">
+                    <img id="cert-05-img" 
+                        src="https://cdn.discordapp.com/attachments/1284158920000147456/1425378190309724281/IMG_1179.jpg?ex=68e75e62&is=68e60ce2&hm=93f5610a97a667b7554e011ebc5c361c4d70e52bae3a74e5087bcef508b0eec9&" alt="[ภาพ: เกียรติบัตรอื่นๆ]" class="w-full h-auto rounded-lg mb-3 object-cover border border-gray-200">
+                    <p class="text-sm font-semibold ai-primary">การปฐมนิเทศ โครงการห้องเรียนพิเศษภาคตะวันออกเฉียงเหนือตอนบน เป็นการปฐมนิเทศที่มี ห้องเรียน SMTE จากกลุ่มโรงเรียนภาคตะวันออกเฉียงเหนือตอนบน</p>
+                    <p class="text-xs text-gray-400">ได้ไปจังหวัดร้อยเอ็ด แล้วได้พบปะกับเพื่อนๆโครงการห้องเรียนพิเศษ ทำความรู้จักกันเพื่อน แลกเปลี่ยนความรู้ และช่วยกันทำโครงงานในอนาคต</p>
+                </div>
+                
+                <div class="ai-card-bg p-4 rounded-xl text-center cursor-pointer hover:shadow-2xl hover:border-blue-400 transition-all duration-300" onclick="openImageModal('cert-06-img')">
+                    <img id="cert-06-img" 
+                         src="https://cdn.discordapp.com/attachments/1284158920000147456/1425378191023013888/IMG_1176.jpg?ex=68e75e62&is=68e60ce2&hm=6342c11db6a7c9a8b0725ee6fcd706d3bdc511bfc14f7898b3c420ee955e9ec5" alt="[ภาพ: เกียรติบัตรอื่นๆ]" class="w-full h-auto rounded-lg mb-3 object-cover border border-gray-200">
+                    <p class="text-sm font-semibold ai-primary">การเข้าร่วมการอบรมเชิงปฏิบัติการจัดทำโครงงานคณิตศาสตร์ โรงเรียนสารคามพิทยาคม</p>
+                    <p class="text-xs text-gray-400">ได้เรียนรู้การทำโครงงานที่ลึกแล้วละเอียดขึ้น</p>
+                </div>
+
+                <div class="ai-card-bg p-4 rounded-xl text-center cursor-pointer hover:shadow-2xl hover:border-blue-400 transition-all duration-300" onclick="openImageModal('cert-07-img')">
+                    <img id="cert-07-img" 
+                         src="https://media.discordapp.net/attachments/1397231164267302912/1425037297484693524/IMG_5383.png?ex=68e620e7&is=68e4cf67&hm=47f498cad166a5377053f99d0e0a78ea3b3e695e9e4cc1b7b5f47d57f381e946&=&format=webp&quality=lossless" alt="[ภาพ: เกียรติบัตรอื่นๆ]" class="w-full h-auto rounded-lg mb-3 object-cover border border-gray-200">
+                    <p class="text-sm font-semibold ai-primary">การเข้าร่วมการอบรมโครงงานวิทยาศาสตร์ ค่ายวิชาการห้องเรียนพิเศษ SMTE จากโรงเรียนภาคตะวันออกเฉียงเหนือ ทั้ง 8 โรงเรียน</p>
+                    <p class="text-xs text-gray-400">ได้เรียนรู้การทำโครงงาน แบบเฉพาะเจาะจงตามสาขาที่ตนเองชอบ และได้ร่วมงาน กับโรงเรียนอื่น เพื่อจัดทำโครงงาน และมี อาจารย์ที่เก่งมากๆ</p>
+                </div>
+
+                <div class="ai-card-bg p-4 rounded-xl text-center cursor-pointer hover:shadow-2xl hover:border-blue-400 transition-all duration-300" onclick="openImageModal('cert-08-img')">
+                    <img id="cert-08-img" 
+                         src="https://cdn.discordapp.com/attachments/1284158920000147456/1425378190750388324/IMG_1177.jpg?ex=68e75e62&is=68e60ce2&hm=505155c3f4c77e2cc879516e6b2bc0caeab437166cc2e35eb26d37a670d6a08f" alt="[ภาพ: เกียรติบัตรอื่นๆ]" class="w-full h-auto rounded-lg mb-3 object-cover border border-gray-200">
+                    <p class="text-sm font-semibold ai-primary">ประกวดเดินแบบวันอินเตอร์</p>
+                    <p class="text-xs text-gray-400">ได้เข้าร่วมการประกวดเดินแบบ ในงาน อินเตอร์ โรงเรียนสารคามพิทยาคม</p>
+                </div>
+
+                <div class="ai-card-bg p-4 rounded-xl text-center opacity-80 cursor-not-allowed">
+                    <img src="https://placehold.co/300x200/f8f9fa/adb5bd?text=OTHER+CERT+06" alt="[ภาพ: เกียรติบัตรอื่นๆ]" class="w-full h-auto rounded-lg mb-3 object-cover border border-gray-200">
+                    <p class="text-sm font-semibold text-gray-600">อื่นๆ (กิจกรรม)</p>
+                    <p class="text-xs text-gray-400">เกียรติบัตรด้านกิจกรรม</p>
+                </div>
+
+                <div class="ai-card-bg p-4 rounded-xl text-center opacity-80 cursor-not-allowed">
+                    <img src="https://placehold.co/300x200/f8f9fa/adb5bd?text=OTHER+CERT+06" alt="[ภาพ: เกียรติบัตรอื่นๆ]" class="w-full h-auto rounded-lg mb-3 object-cover border border-gray-200">
+                    <p class="text-sm font-semibold text-gray-600">อื่นๆ (กิจกรรม)</p>
+                    <p class="text-xs text-gray-400">เกียรติบัตรด้านกิจกรรม</p>
+                </div>
+            </div>
+        </section>
+
+        
+    </main>
+
+    <!-- ส่วนท้าย: ข้อมูลติดต่อ & คำกล่าวสุดท้าย -->
+    <footer id="contact-footer" class="bg-gray-800 mt-16 py-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
+            <h3 class="text-2xl font-bold ai-primary mb-4">CONTACT ME</h3>
+            <div class="text-gray-300 mb-6 space-y-1">
+                <p>📞 โทรศัพท์: 084 037 5746</p>
+                <p>📧 อีเมล: <a href="#" hover:text-blue-300 transition-colors>xixixixixi79@gmail.com</a></p>
+                <p>👤 Facebook: <a href="https://www.facebook.com/NONYOUKNOW" target="_blank" class="hover:text-blue-300 transition-colors">Non Atthanon</a></p>
+                <p>📍 ที่อยู่: <a href="https://www.google.com/maps/place/16%C2%B002'55.0%22N+103%C2%B022'25.3%22E/@16.048623,103.3730593,19z/data=!3m1!4b1!4m4!3m3!8m2!3d16.048623!4d103.373703?entry=ttu&g_ep=EgoyMDI1MTAwMS4wIKXMDSoASAFQAw%3D%3D" target="_blank" class="hover:text-blue-300 transition-colors">คลิ้กที่นี่</a> </p>
+            </div>
+            
+            <hr class="border-gray-700 my-6">
+            
+            <p class="text-lg font-semibold text-gray-200 mb-3">
+                "แฟ้มสะสมผลงานเล่มนี้ เป็นส่วนหนึ่งของการยื่นโครงการผู้มีศักยภาพด้านคอมพิวเตอร์"
+            </p>
+            <p class="text-sm text-gray-500">
+                 Non Atthanon Portfolio | นายอรรถนนท์ เกษร 
+            </p>
+        </div>
+    </footer>
+
+    <!-- MODAL 1: Image Modal (สำหรับดูเกียรติบัตรขนาดใหญ่เท่านั้น) -->
+    <div id="image-modal" class="hidden fixed inset-0 z-[100] bg-black bg-opacity-80 flex justify-center items-center opacity-0 transition-opacity duration-300" onclick="closeImageModal()">
+        
+        <!-- คอนเทนเนอร์เนื้อหา Modal -->
+        <div class="relative max-w-5xl max-h-[90vh] mx-4" onclick="event.stopPropagation()">
+            
+            <!-- ปุ่มปิด (ไอคอน X) -->
+            <button onclick="closeImageModal()" class="absolute -top-10 right-0 text-white text-4xl font-light hover:text-blue-400 transition-colors focus:outline-none" aria-label="ปิด Modal รูปภาพ">
+                &times;
+            </button>
+            
+            <!-- รูปภาพ (เนื้อหาจริง) -->
+            <img id="modal-image" src="" alt="รูปภาพเกียรติบัตรขนาดใหญ่" 
+                 class="w-full h-full object-contain rounded-lg shadow-2xl border-4 border-white animate-fade-in transition-transform duration-500">
+        </div>
+    </div>
+    
+    <!-- MODAL 2: Detail Modal (สำหรับดูรายละเอียดกิจกรรมและโครงงาน) -->
+    <div id="detail-modal" class="hidden fixed inset-0 z-[100] bg-black bg-opacity-80 flex justify-center items-center opacity-0 transition-opacity duration-300 p-2 sm:p-4">
+        
+        <!-- คอนเทนเนอร์เนื้อหา Modal (เพิ่มขนาดสูงสุดเป็น 5xl สำหรับมุมมองรายละเอียด) -->
+        <div class="relative w-full max-w-5xl h-full max-h-[95vh] bg-white rounded-xl shadow-2xl animate-fade-in overflow-hidden" onclick="event.stopPropagation()">
+            
+            <!-- ปุ่มปิด -->
+            <button onclick="closeDetailModal()" class="absolute top-4 right-4 z-50 text-gray-600 bg-white p-2 rounded-full shadow-lg hover:text-red-500 transition-colors focus:outline-none" aria-label="ปิด Modal รายละเอียด">
+                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+
+            <!-- เนื้อหารายละเอียดที่เลื่อนได้ -->
+            <!-- ปรับปรุง: ใช้ minmax(250px, 50vh) เพื่อให้มีสัดส่วนที่เหมาะสมบนมือถือ/ความสูงหน้าจอที่จำกัด -->
+            <div id="detail-content" class="h-full grid grid-rows-[minmax(250px,50vh)_1fr] md:grid-rows-[minmax(0,600px)_1fr] lg:grid-rows-[minmax(0,400px)_1fr] overflow-y-auto custom-scrollbar">
+                
+                <!-- ใหม่: ส่วนสไลด์โชว์รูปภาพ -->
+                <div id="image-carousel-container" class="relative bg-gray-100 overflow-hidden row-span-1 border-b border-gray-200">
+                    
+                    <!-- คอนเทนเนอร์สไลด์ -->
+                    <div id="carousel-slides" class="carousel-slides h-full w-full">
+                        <!-- สไลด์จะถูกแทรกที่นี่โดย JavaScript -->
+                    </div>
+                    
+                    <!-- ลูกศรนำทาง -->
+                    <button onclick="changeSlide(-1)" class="absolute left-0 top-1/2 -translate-y-1/2 p-3 sm:p-4 bg-black/50 text-white rounded-r-lg hover:bg-black/70 transition-colors z-30 focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <button onclick="changeSlide(1)" class="absolute right-0 top-1/2 -translate-y-1/2 p-3 sm:p-4 bg-black/50 text-white rounded-l-lg hover:bg-black/70 transition-colors z-30 focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                    
+                    <!-- ตัวบ่งชี้และตัวนับ -->
+                    <div class="absolute bottom-4 left-0 right-0 flex justify-center items-center z-40 bg-black/30 w-full p-2">
+                        <div id="carousel-indicators" class="flex">
+                            <!-- ตัวบ่งชี้จะถูกแทรกที่นี่โดย JavaScript -->
+                        </div>
+                        <span id="slide-counter" class="text-sm text-white font-semibold ml-4">1 / 1</span>
+                    </div>
+
+                </div>
+                
+                <!-- ส่วนคำอธิบายรายละเอียด -->
+                <div class="p-6 sm:p-8 row-span-1">
+                    
+                    <!-- ป้ายกำกับ (Tags) -->
+                    <div class="mb-4 flex space-x-3 text-sm font-semibold">
+                        <span id="detail-type" class="ai-primary bg-blue-500/10 px-3 py-1 rounded-full"></span>
+                        <span id="detail-role" class="text-gray-600 bg-gray-100 px-3 py-1 rounded-full"></span>
+                    </div>
+
+                    <!-- ชื่อกิจกรรม/โครงงาน -->
+                    <h2 id="detail-title" class="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-4 border-b-2 border-blue-100 pb-2"></h2>
+                    
+                    <!-- คำอธิบาย -->
+                    <h3 class="text-xl font-bold ai-primary mt-6 mb-3">คำอธิบายรายละเอียด</h3>
+                    <p id="detail-description" class="text-gray-700 text-base sm:text-lg leading-relaxed"></p>
+                    
+                    <div class="mt-8 pt-4 border-t border-gray-200">
+                        <p class="text-sm text-gray-500">
+                            **หมายเหตุ:** ข้อมูลนี้แสดงรายละเอียดเพิ่มเติมของกิจกรรม/โครงงาน
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
